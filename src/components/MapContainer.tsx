@@ -1680,7 +1680,11 @@ const MapContainer: React.FC = () => {
     }
   };
 
-  
+  // Basemap tile URLs
+  const basemapUrls = {
+    street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+  };
 
   return (
     <div className="relative w-full h-screen">
@@ -1693,9 +1697,12 @@ const MapContainer: React.FC = () => {
       >
         {/* Base Tile Layer */}
         <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &amp; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
+          url={basemapUrls[basemap]}
+          attribution={basemap === 'street' 
+            ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            : '&copy; <a href="https://www.esri.com/">Esri</a>'
+          }
+        />
 
         {/* Points Layer */}
         {pointsData && showPointsLayer && (
