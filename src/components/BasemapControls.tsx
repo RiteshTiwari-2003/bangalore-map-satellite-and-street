@@ -8,7 +8,7 @@ interface BasemapControlsProps {
 
 const BasemapControls: React.FC<BasemapControlsProps> = ({ basemap, onBasemapChange }) => {
   return (
-    <div className="bg-white rounded-lg shadow-lg p-3 ml-12">
+    <div className="bg-white rounded-lg shadow-lg p-3">
       <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
         <Map className="w-4 h-4 mr-2" />
         Base Map
