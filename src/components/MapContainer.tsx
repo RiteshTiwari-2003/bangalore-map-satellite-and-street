@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L, { LatLngTuple, Icon, LatLng, LeafletMouseEvent } from 'leaflet';
-import { MapPin, Layers, Navigation, Settings } from 'lucide-react';
+import { MapPin, } from 'lucide-react';
 import { GeoJSONData, GeoJSONFeature } from '../types/geojson';
 import LayerControls from './LayerControls';
 import BasemapControls from './BasemapControls';
 import MarkerTool from './MarkerTool';
 import LocationButton from './LocationButton';
+import PointFilter from './PointFilter';
 
 // Custom marker icon
 const customMarkerIcon = new Icon({
@@ -1680,6 +1681,30 @@ const MapContainer: React.FC = () => {
     }
   };
 
+  // Handle point type selection and fly to first occurrence
+  const handlePointTypeSelect = (type: string) => {
+    if (!pointsData || !mapRef.current) return;
+
+    if (type === 'all') {
+      // Fly to center of all points
+      mapRef.current.setView([12.9716, 77.5946], 11);
+      return;
+    }
+
+    // Find first point of selected type
+    const targetPoint = pointsData.features.find(
+      feature => feature.properties.type === type
+    );
+
+    if (targetPoint && targetPoint.geometry.type === 'Point') {
+      const [lng, lat] = targetPoint.geometry.coordinates;
+      mapRef.current.flyTo([lat, lng], 16, {
+        duration: 1.5,
+        easeLinearity: 0.25
+      });
+    }
+  };
+
   // Basemap tile URLs
   const basemapUrls = {
     street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -1791,6 +1816,7 @@ const MapContainer: React.FC = () => {
       {/* Tools Panel */}
       <div className="absolute top-4 right-4 z-[1000] space-y-4">
         <LocationButton onLocationRequest={handleLocationRequest} />
+        <PointFilter onPointTypeSelect={handlePointTypeSelect} />
         <MarkerTool
           isMarkerMode={isMarkerMode}
           onToggleMarkerMode={() => setIsMarkerMode(!isMarkerMode)}
