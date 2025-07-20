@@ -9,7 +9,6 @@ import MarkerTool from './MarkerTool';
 import LocationButton from './LocationButton';
 import PointFilter from './PointFilter';
 
-// Custom marker icon
 const customMarkerIcon = new Icon({
   iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDlDNSAxNC4yNSAxMiAyMiAxMiAyMkMxMiAyMiAxOSAxNC4yNSAxOSA5QzE5IDUuMTMgMTUuODcgMiAxMiAyWk0xMiAxMS41QzEwLjYyIDExLjUgOS41IDEwLjM4IDkuNSA5QzkuNSA3LjYyIDEwLjYyIDYuNSAxMiA2LjVDMTMuMzggNi41IDE0LjUgNy42MiAxNC41IDlDMTQuNSAxMC4zOCAxMy4zOCAxMS41IDEyIDExLjVaIiBmaWxsPSIjM0I4MkY2Ii8+Cjwvc3ZnPgo=',
   iconSize: [32, 32],
@@ -23,7 +22,6 @@ interface UserMarker {
   name: string;
 }
 
-// Component to handle map clicks for marker placement
 function MapClickHandler({ 
   isMarkerMode, 
   onMarkerAdd 
@@ -54,9 +52,7 @@ const MapContainer: React.FC = () => {
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const mapRef = useRef<any>(null);
 
-  // Load GeoJSON data on component mount
-  useEffect(() => {
-    // Complete points data from the provided GeoJSON
+    useEffect(() => {
     const completePointsData: GeoJSONData = {
       "type": "FeatureCollection",
       "features": [

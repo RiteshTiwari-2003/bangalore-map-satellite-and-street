@@ -21,8 +21,7 @@ const LayerControls: React.FC<LayerControlsProps> = ({
         Map Layers
       </h3>
       <div className="space-y-3">
-        {/* Points Layer Toggle */}
-        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
           <div className="flex items-center">
             <MapPin className="w-4 h-4 mr-2 text-orange-600" />
             <span className="text-sm font-medium text-gray-700">Points of Interest</span>
@@ -44,7 +43,6 @@ const LayerControls: React.FC<LayerControlsProps> = ({
           </label>
         </div>
 
-        {/* Routes Layer Toggle */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Route className="w-4 h-4 mr-2 text-red-600" />
