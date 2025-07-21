@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer as LeafletMap, TileLayer, GeoJSON, Marker, Popup, useMapEvents, } from 'react-leaflet';
 import L, { LatLngTuple, Icon, LatLng, LeafletMouseEvent } from 'leaflet';
-import { MapPin, } from 'lucide-react';
-import { GeoJSONData, GeoJSONFeature } from '../types/geojson';
+import { MapPin, Layers, Navigation, ZoomIn, Filter, Map as MapIcon, Plus, Minus } from 'lucide-react';
 import LayerControls from './LayerControls';
 import BasemapControls from './BasemapControls';
 import MarkerTool from './MarkerTool';
@@ -21,6 +20,17 @@ interface UserMarker {
   id: string;
   position: LatLng;
   name: string;
+}
+
+interface GeoJSONData {
+  type: string;
+  features: any[];
+}
+
+interface GeoJSONFeature {
+  type: string;
+  properties: any;
+  geometry: any;
 }
 
 // Component to handle map clicks for marker placement
@@ -47,8 +57,30 @@ const MapContainer: React.FC = () => {
   const [basemap, setBasemap] = useState<'street' | 'satellite'>('street');
   const [showPointsLayer, setShowPointsLayer] = useState(true);
   const [showRoutesLayer, setShowRoutesLayer] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [activePanel, setActivePanel] = useState<string | null>(null);
   const [pointsData, setPointsData] = useState<GeoJSONData | null>(null);
   const [routesData, setRoutesData] = useState<GeoJSONData | null>(null);
+
+  // Check if screen is mobile size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 425);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Toggle panel visibility on mobile
+  const togglePanel = (panelName: string) => {
+    if (activePanel === panelName) {
+      setActivePanel(null);
+    } else {
+      setActivePanel(panelName);
+    }
+  };
   const [userMarkers, setUserMarkers] = useState<UserMarker[]>([]);
   const [isMarkerMode, setIsMarkerMode] = useState(false);
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
@@ -1650,8 +1682,6 @@ const MapContainer: React.FC = () => {
     setRoutesData(completeRoutesData);
   }, []);
 
-  
-
   const getRouteStyle = (feature: GeoJSONFeature) => {
     if (feature.geometry.type === 'LineString') {
       return {
@@ -1739,7 +1769,7 @@ const MapContainer: React.FC = () => {
   return (
     <div className="relative w-full h-screen">
       {/* Map Container */}
-      <LeafletMapContainer
+      <LeafletMap
         center={center}
         zoom={zoom}
         className="w-full h-full"
@@ -1818,61 +1848,212 @@ const MapContainer: React.FC = () => {
           </Marker>
         )}
 
-        {/* Map Click Handler for Marker Placement */}
-        <MapClickHandler isMarkerMode={isMarkerMode} onMarkerAdd={handleMarkerAdd} />
-      </LeafletMapContainer>
-
-      {/* Control Panels */}
-      <div className="absolute top-4 left-4 z-[1000] space-y-4">
-        <BasemapControls basemap={basemap} onBasemapChange={setBasemap} />
-        <LayerControls
-          showPointsLayer={showPointsLayer}
-          showRoutesLayer={showRoutesLayer}
-          onPointsLayerToggle={setShowPointsLayer}
-          onRoutesLayerToggle={setShowRoutesLayer}
+        {/* Map Click Handler */}
+        <MapClickHandler
+          isMarkerMode={isMarkerMode}
+          onMarkerAdd={handleMarkerAdd}
         />
-        
-        {/* Zoom Controls */}
-        <div className="bg-white rounded-lg shadow-lg p-3 w-48">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-            </svg>
-            Zoom Controls
-          </h3>
-          <div className="space-y-2">
+      </LeafletMap>
+
+      {/* Mobile Layout (≤375px) */}
+      {isMobile ? (
+        <>
+          {/* Mobile Icon Column */}
+          <div className="absolute top-4 left-4 space-y-2 z-[1000]">
             <button
-              onClick={() => mapRef.current?.setZoom((mapRef.current?.getZoom() || 13) + 1)}
-              className="w-full flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all duration-200 border border-transparent hover:border-gray-200"
+              onClick={() => togglePanel('layers')}
+              className={`w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-all duration-200 ${
+                activePanel === 'layers' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Zoom In
+              <Layers className="w-5 h-5" />
             </button>
+            
             <button
-              onClick={() => mapRef.current?.setZoom((mapRef.current?.getZoom() || 13) - 1)}
-              className="w-full flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all duration-200 border border-transparent hover:border-gray-200"
+              onClick={() => togglePanel('zoom')}
+              className={`w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-all duration-200 ${
+                activePanel === 'zoom' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-              </svg>
-              Zoom Out
+              <ZoomIn className="w-5 h-5" />
+            </button>
+            
+            <button
+              onClick={() => togglePanel('filter')}
+              className={`w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-all duration-200 ${
+                activePanel === 'filter' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Filter className="w-5 h-5" />
+            </button>
+            
+            <button
+              onClick={() => togglePanel('marker')}
+              className={`w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-all duration-200 ${
+                activePanel === 'marker' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <MapPin className="w-5 h-5" />
+            </button>
+            
+            <button
+              onClick={() => togglePanel('location')}
+              className={`w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-all duration-200 ${
+                activePanel === 'location' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Navigation className="w-5 h-5" />
+            </button>
+            
+            <button
+              onClick={() => togglePanel('basemap')}
+              className={`w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-all duration-200 ${
+                activePanel === 'basemap' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <MapIcon className="w-5 h-5" />
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Tools Panel */}
-      <div className="absolute top-4 right-4 z-[1000] space-y-4">
-        <LocationButton onLocationRequest={handleLocationRequest} />
-        <PointFilter onPointTypeSelect={handlePointTypeSelect} />
-        <MarkerTool
-          isMarkerMode={isMarkerMode}
-          onToggleMarkerMode={() => setIsMarkerMode(!isMarkerMode)}
-        />
-      </div>
-      
+          {/* Mobile Panels */}
+          {activePanel === 'layers' && (
+            <div className="absolute top-4 left-16 z-[1000]">
+              <LayerControls
+                showPointsLayer={showPointsLayer}
+                showRoutesLayer={showRoutesLayer}
+                onPointsLayerToggle={setShowPointsLayer}
+                onRoutesLayerToggle={setShowRoutesLayer}
+              />
+            </div>
+          )}
+
+          {activePanel === 'zoom' && (
+            <div className="absolute top-16 left-16 z-[1000]">
+              <div className="bg-white rounded-lg shadow-lg p-3 w-48">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <ZoomIn className="w-4 h-4 mr-2" />
+                  Zoom Controls
+                </h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      const map = mapRef.current;
+                      if (map) {
+                        map.setZoom(map.getZoom() + 1);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all duration-200"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Zoom In
+                  </button>
+                  <button
+                    onClick={() => {
+                      const map = mapRef.current;
+                      if (map) {
+                        map.setZoom(map.getZoom() - 1);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all duration-200"
+                  >
+                    <Minus className="w-4 h-4 mr-2" />
+                    Zoom Out
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activePanel === 'filter' && (
+            <div className="absolute top-32 left-16 z-[1000]">
+              <PointFilter onPointTypeSelect={handlePointTypeSelect} />
+            </div>
+          )}
+
+          {activePanel === 'marker' && (
+            <div className="absolute top-48 left-16 z-[1000]">
+              <MarkerTool
+                isMarkerMode={isMarkerMode}
+                onToggleMarkerMode={() => setIsMarkerMode(!isMarkerMode)}
+              />
+            </div>
+          )}
+
+          {activePanel === 'location' && (
+            <div className="absolute top-64 left-16 z-[1000]">
+              <LocationButton onLocationRequest={handleLocationRequest} />
+            </div>
+          )}
+
+          {activePanel === 'basemap' && (
+            <div className="absolute top-80 left-16 z-[1000]">
+              <BasemapControls basemap={basemap} onBasemapChange={setBasemap} />
+            </div>
+          )}
+        </>
+      ) : (
+        /* Desktop Layout - Original layout */
+        <>
+          {/* Left Panel - Map Layers and Zoom Controls */}
+          <div className="absolute top-4 left-4 z-[1000] space-y-3">
+            <LayerControls
+              showPointsLayer={showPointsLayer}
+              showRoutesLayer={showRoutesLayer}
+              onPointsLayerToggle={setShowPointsLayer}
+              onRoutesLayerToggle={setShowRoutesLayer}
+            />
+            
+            {/* Custom Zoom Controls */}
+            <div className="bg-white rounded-lg shadow-lg p-3 w-48">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <ZoomIn className="w-4 h-4 mr-2" />
+                Zoom Controls
+              </h3>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    const map = mapRef.current;
+                    if (map) {
+                      map.setZoom(map.getZoom() + 1);
+                    }
+                  }}
+                  className="w-full flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all duration-200"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Zoom In
+                </button>
+                <button
+                  onClick={() => {
+                    const map = mapRef.current;
+                    if (map) {
+                      map.setZoom(map.getZoom() - 1);
+                    }
+                  }}
+                  className="w-full flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all duration-200"
+                >
+                  <Minus className="w-4 h-4 mr-2" />
+                  Zoom Out
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel - Point Filter, Marker Tool, and Location Button */}
+          <div className="absolute top-4 right-4 z-[1000] space-y-3">
+            <PointFilter onPointTypeSelect={handlePointTypeSelect} />
+            <MarkerTool
+              isMarkerMode={isMarkerMode}
+              onToggleMarkerMode={() => setIsMarkerMode(!isMarkerMode)}
+            />
+            <LocationButton onLocationRequest={handleLocationRequest} />
+          </div>
+
+          {/* Bottom Left - Basemap Controls */}
+          <div className="absolute bottom-4 left-4 z-[1000]">
+            <BasemapControls basemap={basemap} onBasemapChange={setBasemap} />
+          </div>
+        </>
+      )}
 
       {/* Status Indicator */}
       {isMarkerMode && (
@@ -1883,9 +2064,6 @@ const MapContainer: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Hidden comment as requested - used gpt */}
-      <div style={{ display: 'none' }}>used gpt</div>
     </div>
   );
 };
