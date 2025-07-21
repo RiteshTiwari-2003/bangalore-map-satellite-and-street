@@ -1708,7 +1708,6 @@ const MapContainer: React.FC = () => {
     return {};
   };
 
-  // Point to layer function for markers
   const pointToLayer = (
     feature: GeoJSONFeature,
     latlng: LatLng
@@ -1719,7 +1718,6 @@ const MapContainer: React.FC = () => {
     return L.marker(latlng, { icon });
   };
 
-  // Handle marker addition
   const handleMarkerAdd = (position: LatLng) => {
     const newMarker: UserMarker = {
       id: Date.now().toString(),
@@ -1730,7 +1728,6 @@ const MapContainer: React.FC = () => {
     setIsMarkerMode(false);
   };
 
-  // Get user location
   const handleLocationRequest = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -1751,7 +1748,6 @@ const MapContainer: React.FC = () => {
     }
   };
 
-  // Handle point type selection and fly to first occurrence
   const handlePointTypeSelect = (type: string) => {
     if (!pointsData || !mapRef.current) return;
 
@@ -1761,7 +1757,7 @@ const MapContainer: React.FC = () => {
       return;
     }
 
-    // Find first point of selected type
+    
     const targetPoint = pointsData.features.find(
       feature => feature.properties.type === type
     );
@@ -1785,20 +1781,20 @@ const MapContainer: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen">
-      {/* Map Container */}
+     
       <LeafletMap
         center={center}
         zoom={zoom}
         className="w-full h-full"
         ref={mapRef}
       >
-        {/* Base Tile Layer */}
+        
         <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &amp; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
 
-        {/* Points Layer */}
+        
         {pointsData && showPointsLayer && (
           <GeoJSON
             key="points-layer"
@@ -1816,7 +1812,7 @@ const MapContainer: React.FC = () => {
           />
         )}
 
-        {/* Routes/Zones Layer */}
+        
         {routesData && showRoutesLayer && (
           <GeoJSON
             key="routes-layer"
@@ -1834,7 +1830,6 @@ const MapContainer: React.FC = () => {
           />
         )}
 
-        {/* User Markers */}
         {userMarkers.map((marker) => (
           <Marker
             key={marker.id}
@@ -1852,8 +1847,7 @@ const MapContainer: React.FC = () => {
             </Popup>
           </Marker>
         ))}
-
-        {/* User Location Marker */}
+        
         {userLocation && (
           <Marker position={userLocation}>
             <Popup>
@@ -1864,18 +1858,15 @@ const MapContainer: React.FC = () => {
             </Popup>
           </Marker>
         )}
-
-        {/* Map Click Handler */}
+        
         <MapClickHandler
           isMarkerMode={isMarkerMode}
           onMarkerAdd={handleMarkerAdd}
         />
       </LeafletMap>
 
-      {/* Mobile Layout (≤375px) */}
       {isMobile ? (
         <>
-          {/* Mobile Icon Column */}
           <div className="absolute top-4 left-4 space-y-2 z-[1000]">
             <button
               onClick={() => togglePanel('layers')}
@@ -1932,7 +1923,6 @@ const MapContainer: React.FC = () => {
             </button>
           </div>
 
-          {/* Mobile Panels */}
           {activePanel === 'layers' && (
             <div className="absolute top-4 left-16 z-[1000]">
               <LayerControls
@@ -2011,7 +2001,7 @@ const MapContainer: React.FC = () => {
       ) : (
         /* Desktop Layout - Original layout */
         <>
-          {/* Left Panel - Map Layers and Zoom Controls */}
+          
           <div className="absolute top-4 left-4 z-[1000] space-y-3">
             <LayerControls
               showPointsLayer={showPointsLayer}
@@ -2020,7 +2010,7 @@ const MapContainer: React.FC = () => {
               onRoutesLayerToggle={setShowRoutesLayer}
             />
             
-            {/* Custom Zoom Controls */}
+            
             <div className="bg-white rounded-lg shadow-lg p-3 w-48">
               <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
                 <ZoomIn className="w-4 h-4 mr-2" />
@@ -2055,7 +2045,6 @@ const MapContainer: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Panel - Point Filter, Marker Tool, and Location Button */}
           <div className="absolute top-4 right-4 z-[1000] space-y-3">
             <PointFilter onPointTypeSelect={handlePointTypeSelect} />
             <MarkerTool
@@ -2064,15 +2053,13 @@ const MapContainer: React.FC = () => {
             />
             <LocationButton onLocationRequest={handleLocationRequest} />
           </div>
-
-          {/* Bottom Left - Basemap Controls */}
+         
           <div className="absolute bottom-4 left-4 z-[1000]">
             <BasemapControls basemap={basemap} onBasemapChange={setBasemap} />
           </div>
         </>
       )}
-
-      {/* Status Indicator */}
+     
       {isMarkerMode && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000]">
           <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
