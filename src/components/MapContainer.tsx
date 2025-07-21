@@ -1701,31 +1701,24 @@ const MapContainer: React.FC = () => {
     }
   };
 
-  // Basemap tile URLs
-  const basemapUrls = {
-    street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-  };
+  
 
   return (
     <div className="relative w-full h-screen">
-      {/* Map Container */}
+      
       <LeafletMapContainer
         center={center}
         zoom={zoom}
         className="w-full h-full"
         ref={mapRef}
       >
-        {/* Base Tile Layer */}
+        
         <TileLayer
-          url={basemapUrls[basemap]}
-          attribution={basemap === 'street' 
-            ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            : '&copy; <a href="https://www.esri.com/">Esri</a>'
-          }
-        />
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &amp; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
 
-        {/* Points Layer */}
+        
         {pointsData && showPointsLayer && (
           <GeoJSON
             key="points-layer"
@@ -1745,7 +1738,7 @@ const MapContainer: React.FC = () => {
           />
         )}
 
-        {/* Routes/Zones Layer */}
+        
         {routesData && showRoutesLayer && (
           <GeoJSON
             key="routes-layer"
@@ -1763,7 +1756,7 @@ const MapContainer: React.FC = () => {
           />
         )}
 
-        {/* User Markers */}
+        
         {userMarkers.map((marker) => (
           <Marker
             key={marker.id}
@@ -1782,7 +1775,7 @@ const MapContainer: React.FC = () => {
           </Marker>
         ))}
 
-        {/* User Location Marker */}
+        
         {userLocation && (
           <Marker position={userLocation}>
             <Popup>
@@ -1794,11 +1787,11 @@ const MapContainer: React.FC = () => {
           </Marker>
         )}
 
-        {/* Map Click Handler for Marker Placement */}
+        
         <MapClickHandler isMarkerMode={isMarkerMode} onMarkerAdd={handleMarkerAdd} />
       </LeafletMapContainer>
 
-      {/* Control Panels */}
+      
       <div className="absolute top-4 left-4 z-[1000] space-y-4">
         <BasemapControls basemap={basemap} onBasemapChange={setBasemap} />
         <LayerControls
@@ -1808,7 +1801,7 @@ const MapContainer: React.FC = () => {
           onRoutesLayerToggle={setShowRoutesLayer}
         />
         
-        {/* Zoom Controls */}
+        
         <div className="bg-white rounded-lg shadow-lg p-3 w-48">
           <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1839,7 +1832,7 @@ const MapContainer: React.FC = () => {
         </div>
       </div>
 
-      {/* Tools Panel */}
+      
       <div className="absolute top-4 right-4 z-[1000] space-y-4">
         <LocationButton onLocationRequest={handleLocationRequest} />
         <PointFilter onPointTypeSelect={handlePointTypeSelect} />
@@ -1850,7 +1843,7 @@ const MapContainer: React.FC = () => {
       </div>
       
 
-      {/* Status Indicator */}
+      
       {isMarkerMode && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000]">
           <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
@@ -1860,7 +1853,7 @@ const MapContainer: React.FC = () => {
         </div>
       )}
 
-      {/* Hidden comment as requested - used gpt */}
+      
       <div style={{ display: 'none' }}>used gpt</div>
     </div>
   );
