@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L, { LatLngTuple, Icon, LatLng, LeafletMouseEvent } from 'leaflet';
-import { MapPin,  } from 'lucide-react';
+import { MapPin, } from 'lucide-react';
 import { GeoJSONData, GeoJSONFeature } from '../types/geojson';
 import LayerControls from './LayerControls';
 import BasemapControls from './BasemapControls';
@@ -9,6 +9,7 @@ import MarkerTool from './MarkerTool';
 import LocationButton from './LocationButton';
 import PointFilter from './PointFilter';
 
+// Custom marker icon
 const customMarkerIcon = new Icon({
   iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDlDNSAxNC4yNSAxMiAyMiAxMiAyMkMxMiAyMiAxOSAxNC4yNSAxOSA5QzE5IDUuMTMgMTUuODcgMiAxMiAyWk0xMiAxMS41QzEwLjYyIDExLjUgOS41IDEwLjM4IDkuNSA5QzkuNSA3LjYyIDEwLjYyIDYuNSAxMiA2LjVDMTMuMzggNi41IDE0LjUgNy42MiAxNC41IDlDMTQuNSAxMC4zOCAxMy4zOCAxMS41IDEyIDExLjVaIiBmaWxsPSIjM0I4MkY2Ii8+Cjwvc3ZnPgo=',
   iconSize: [32, 32],
@@ -22,6 +23,7 @@ interface UserMarker {
   name: string;
 }
 
+// Component to handle map clicks for marker placement
 function MapClickHandler({ 
   isMarkerMode, 
   onMarkerAdd 
@@ -52,7 +54,50 @@ const MapContainer: React.FC = () => {
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const mapRef = useRef<any>(null);
 
-    useEffect(() => {
+  // Create custom marker icons for different point types
+  const createMarkerIcon = (color: string) => {
+    return L.divIcon({
+      html: `
+        <div style="
+          background-color: ${color};
+          width: 20px;
+          height: 20px;
+          border-radius: 50% 50% 50% 0;
+          border: 2px solid white;
+          transform: rotate(-45deg);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        ">
+          <div style="
+            width: 6px;
+            height: 6px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+          "></div>
+        </div>
+      `,
+      className: 'custom-marker',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+      popupAnchor: [0, -20]
+    });
+  };
+
+  // Define marker icons for each point type
+  const markerIcons = {
+    Restaurant: createMarkerIcon('#F97316'),
+    Hospital: createMarkerIcon('#EF4444'),
+    Park: createMarkerIcon('#22C55E'),
+    School: createMarkerIcon('#3B82F6'),
+    Shop: createMarkerIcon('#8B5CF6')
+  };
+
+  // Load GeoJSON data on component mount
+  useEffect(() => {
+    // Complete points data from the provided GeoJSON
     const completePointsData: GeoJSONData = {
       "type": "FeatureCollection",
       "features": [
@@ -1605,26 +1650,7 @@ const MapContainer: React.FC = () => {
     setRoutesData(completeRoutesData);
   }, []);
 
-  // Style functions for different feature types
-  const getPointStyle = (feature: GeoJSONFeature) => {
-    const type = feature.properties.type;
-    const colors: { [key: string]: string } = {
-      'Restaurant': '#F97316', // Orange
-      'Hospital': '#EF4444', // Red
-      'Park': '#22C55E', // Green
-      'School': '#3B82F6', // Blue
-      'Shop': '#8B5CF6' // Purple
-    };
-    
-    return {
-      radius: 8,
-      fillColor: colors[type] || '#6B7280',
-      color: '#FFFFFF',
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.8
-    };
-  };
+  
 
   const getRouteStyle = (feature: GeoJSONFeature) => {
     if (feature.geometry.type === 'LineString') {
@@ -1643,6 +1669,14 @@ const MapContainer: React.FC = () => {
       };
     }
     return {};
+  };
+
+  // Point to layer function for markers
+  const pointToLayer = (feature: any, latlng: any) => {
+    const pointType = feature.properties.type;
+    const icon = markerIcons[pointType as keyof typeof markerIcons] || markerIcons.Restaurant;
+    
+    return L.marker(latlng, { icon });
   };
 
   // Handle marker addition
@@ -1701,31 +1735,28 @@ const MapContainer: React.FC = () => {
     }
   };
 
-  
 
   return (
     <div className="relative w-full h-screen">
-      
+      {/* Map Container */}
       <LeafletMapContainer
         center={center}
         zoom={zoom}
         className="w-full h-full"
         ref={mapRef}
       >
-        
+        {/* Base Tile Layer */}
         <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &amp; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
 
-        
+        {/* Points Layer */}
         {pointsData && showPointsLayer && (
           <GeoJSON
             key="points-layer"
             data={pointsData}
-            pointToLayer={(feature, latlng) => {
-              return L.circleMarker(latlng, getPointStyle(feature as GeoJSONFeature));
-            }}
+            pointToLayer={pointToLayer}
             onEachFeature={(feature, layer) => {
               const props = feature.properties;
               layer.bindPopup(`
@@ -1738,7 +1769,7 @@ const MapContainer: React.FC = () => {
           />
         )}
 
-        
+        {/* Routes/Zones Layer */}
         {routesData && showRoutesLayer && (
           <GeoJSON
             key="routes-layer"
@@ -1756,7 +1787,7 @@ const MapContainer: React.FC = () => {
           />
         )}
 
-        
+        {/* User Markers */}
         {userMarkers.map((marker) => (
           <Marker
             key={marker.id}
@@ -1775,7 +1806,7 @@ const MapContainer: React.FC = () => {
           </Marker>
         ))}
 
-        
+        {/* User Location Marker */}
         {userLocation && (
           <Marker position={userLocation}>
             <Popup>
@@ -1787,11 +1818,11 @@ const MapContainer: React.FC = () => {
           </Marker>
         )}
 
-        
+        {/* Map Click Handler for Marker Placement */}
         <MapClickHandler isMarkerMode={isMarkerMode} onMarkerAdd={handleMarkerAdd} />
       </LeafletMapContainer>
 
-      
+      {/* Control Panels */}
       <div className="absolute top-4 left-4 z-[1000] space-y-4">
         <BasemapControls basemap={basemap} onBasemapChange={setBasemap} />
         <LayerControls
@@ -1801,7 +1832,7 @@ const MapContainer: React.FC = () => {
           onRoutesLayerToggle={setShowRoutesLayer}
         />
         
-        
+        {/* Zoom Controls */}
         <div className="bg-white rounded-lg shadow-lg p-3 w-48">
           <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1832,7 +1863,7 @@ const MapContainer: React.FC = () => {
         </div>
       </div>
 
-      
+      {/* Tools Panel */}
       <div className="absolute top-4 right-4 z-[1000] space-y-4">
         <LocationButton onLocationRequest={handleLocationRequest} />
         <PointFilter onPointTypeSelect={handlePointTypeSelect} />
@@ -1843,7 +1874,7 @@ const MapContainer: React.FC = () => {
       </div>
       
 
-      
+      {/* Status Indicator */}
       {isMarkerMode && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000]">
           <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
@@ -1853,7 +1884,7 @@ const MapContainer: React.FC = () => {
         </div>
       )}
 
-      
+      {/* Hidden comment as requested - used gpt */}
       <div style={{ display: 'none' }}>used gpt</div>
     </div>
   );
