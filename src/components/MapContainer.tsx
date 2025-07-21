@@ -23,14 +23,21 @@ interface UserMarker {
 }
 
 interface GeoJSONData {
-  type: string;
-  features: any[];
+  type: 'FeatureCollection';
+  features: GeoJSONFeature[];
 }
 
 interface GeoJSONFeature {
   type: string;
-  properties: any;
-  geometry: any;
+  properties: {
+    name: string;
+    type: string;
+    [key: string]: unknown;
+  };
+  geometry: {
+    type: string;
+    coordinates: number[] | number[][] | number[][][];
+  };
 }
 
 // Component to handle map clicks for marker placement
@@ -84,7 +91,7 @@ const MapContainer: React.FC = () => {
   const [userMarkers, setUserMarkers] = useState<UserMarker[]>([]);
   const [isMarkerMode, setIsMarkerMode] = useState(false);
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
   // Create custom marker icons for different point types
   const createMarkerIcon = (color: string) => {
@@ -1702,7 +1709,10 @@ const MapContainer: React.FC = () => {
   };
 
   // Point to layer function for markers
-  const pointToLayer = (feature: any, latlng: any) => {
+  const pointToLayer = (
+    feature: GeoJSONFeature,
+    latlng: LatLng
+  ): L.Marker => {
     const pointType = feature.properties.type;
     const icon = markerIcons[pointType as keyof typeof markerIcons] || markerIcons.Restaurant;
     
@@ -1756,8 +1766,15 @@ const MapContainer: React.FC = () => {
       feature => feature.properties.type === type
     );
 
-    if (targetPoint && targetPoint.geometry.type === 'Point') {
-      const [lng, lat] = targetPoint.geometry.coordinates;
+    if (
+      targetPoint &&
+      targetPoint.geometry.type === 'Point' &&
+      Array.isArray(targetPoint.geometry.coordinates) &&
+      targetPoint.geometry.coordinates.length === 2 &&
+      typeof targetPoint.geometry.coordinates[0] === 'number' &&
+      typeof targetPoint.geometry.coordinates[1] === 'number'
+    ) {
+      const [lng, lat] = targetPoint.geometry.coordinates as [number, number];
       mapRef.current.flyTo([lat, lng], 16, {
         duration: 1.5,
         easeLinearity: 0.25
