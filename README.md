@@ -179,3 +179,13 @@ src/
 ## Conclusion
 
 This project represents a comprehensive web mapping solution that combines modern web technologies with geographical data visualization. The application is designed to be scalable, maintainable, and user-friendly while providing powerful mapping capabilities for exploring Bangalore's geographical features.
+
+### i have also aplied mapflytool functionality on every value of dropdown 
+like in drop down whatever value i select (like hospital, park, school...) on that place map fly or zoom in 
+
+
+### i have added seperate responsiveness for all device which width is <=425 px like for mobile
+
+where i applied icons like for location base map zoom in and zoom out and for all six coponent i make icon where i applied toggle functionality 
+
+like when i click on any icon then that functionality visible and other five remain hide and when i use that functionality and when i again cick on that icon then it hide again>
